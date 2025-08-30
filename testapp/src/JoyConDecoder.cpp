@@ -176,7 +176,7 @@ DS4_REPORT_EX GenerateDS4Report(const std::vector<uint8_t>& buffer, JoyConSide s
     return report;
 }
 
-DS4_REPORT_EX GenerateDualJoyConDS4Report(const std::vector<uint8_t>& leftBuffer, const std::vector<uint8_t>& rightBuffer)
+DS4_REPORT_EX GenerateDualJoyConDS4Report(const std::vector<uint8_t>& leftBuffer, const std::vector<uint8_t>& rightBuffer, GyroSource gyroSource)
 {
     DS4_REPORT_EX report{};
     DS4_REPORT_INIT(reinterpret_cast<PDS4_REPORT>(&report.Report));
@@ -236,19 +236,45 @@ DS4_REPORT_EX GenerateDualJoyConDS4Report(const std::vector<uint8_t>& leftBuffer
     report.Report.bThumbRX = rightReport.Report.bThumbLX;
     report.Report.bThumbRY = rightReport.Report.bThumbLY;
 
-    auto combine_16 = [](int16_t a, int16_t b) -> int16_t {
-        if (a == 0) return b;
-        if (b == 0) return a;
-        return static_cast<int16_t>((a / 2) + (b / 2));
-        };
+    switch (gyroSource) {
+        case GyroSource::Left:
+            report.Report.wAccelX = leftReport.Report.wAccelX;
+            report.Report.wAccelY = leftReport.Report.wAccelY;
+            report.Report.wAccelZ = leftReport.Report.wAccelZ;
 
-    report.Report.wAccelX = combine_16(leftReport.Report.wAccelX, rightReport.Report.wAccelX);
-    report.Report.wAccelY = combine_16(leftReport.Report.wAccelY, rightReport.Report.wAccelY);
-    report.Report.wAccelZ = combine_16(leftReport.Report.wAccelZ, rightReport.Report.wAccelZ);
+            report.Report.wGyroX = leftReport.Report.wGyroX;
+            report.Report.wGyroY = leftReport.Report.wGyroY;
+            report.Report.wGyroZ = leftReport.Report.wGyroZ;
+            break;
 
-    report.Report.wGyroX = combine_16(leftReport.Report.wGyroX, rightReport.Report.wGyroX);
-    report.Report.wGyroY = combine_16(leftReport.Report.wGyroY, rightReport.Report.wGyroY);
-    report.Report.wGyroZ = combine_16(leftReport.Report.wGyroZ, rightReport.Report.wGyroZ);
+        case GyroSource::Right:
+            report.Report.wAccelX = rightReport.Report.wAccelX;
+            report.Report.wAccelY = rightReport.Report.wAccelY;
+            report.Report.wAccelZ = rightReport.Report.wAccelZ;
+
+            report.Report.wGyroX = rightReport.Report.wGyroX;
+            report.Report.wGyroY = rightReport.Report.wGyroY;
+            report.Report.wGyroZ = rightReport.Report.wGyroZ;
+            break;
+
+        case GyroSource::Both:
+        default:
+            auto combine_16 = [](int16_t a, int16_t b) -> int16_t {
+                if (a == 0) return b;
+                if (b == 0) return a;
+                return static_cast<int16_t>((a / 2) + (b / 2));
+                };
+
+            report.Report.wAccelX = combine_16(leftReport.Report.wAccelX, rightReport.Report.wAccelX);
+            report.Report.wAccelY = combine_16(leftReport.Report.wAccelY, rightReport.Report.wAccelY);
+            report.Report.wAccelZ = combine_16(leftReport.Report.wAccelZ, rightReport.Report.wAccelZ);
+
+            report.Report.wGyroX = combine_16(leftReport.Report.wGyroX, rightReport.Report.wGyroX);
+            report.Report.wGyroY = combine_16(leftReport.Report.wGyroY, rightReport.Report.wGyroY);
+            report.Report.wGyroZ = combine_16(leftReport.Report.wGyroZ, rightReport.Report.wGyroZ);
+            break;
+    }
+
 
     return report;
 }
