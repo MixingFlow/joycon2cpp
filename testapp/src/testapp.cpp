@@ -190,6 +190,7 @@ struct PlayerConfig {
     ControllerType controllerType;
     JoyConSide joyconSide;
     JoyConOrientation joyconOrientation;
+    GyroSource gyroSource;
 };
 
 // For single Joy-Con players, store controller + JoyCon info to keep alive
@@ -204,6 +205,7 @@ struct SingleJoyConPlayer {
 struct DualJoyConPlayer {
     ConnectedJoyCon leftJoyCon;
     ConnectedJoyCon rightJoyCon;
+    GyroSource gyroSource;
     PVIGEM_TARGET ds4Controller;
     std::atomic<bool> running;
     std::thread updateThread;
@@ -267,6 +269,27 @@ int main()
         else if (config.controllerType == DualJoyCon) {
             config.joyconSide = JoyConSide::Left;
             config.joyconOrientation = JoyConOrientation::Upright;
+
+            while (true) {
+                std::wcout << L"Player " << (i + 1) << L":\n";
+                std::wcout << L"  What should be used as Gyro Source? (B=Both JoyCons, L=Left JoyCon, R=Right JoyCon): ";
+                std::getline(std::wcin, line);
+
+                if (line == L"B") {
+                    config.gyroSource = GyroSource::Both;
+                    break;
+                }
+                else if (line == L"L") {
+                    config.gyroSource = GyroSource::Left;
+                    break;
+                }
+                else if (line == L"R") {
+                    config.gyroSource = GyroSource::Right;
+                    break;
+                }
+                std::wcout << L"Invalid input. Please enter B, L, or R.\n";
+            }
+
         }
 
         playerConfigs.push_back(config);
@@ -351,6 +374,7 @@ int main()
             auto dualPlayer = std::make_unique<DualJoyConPlayer>();
             dualPlayer->leftJoyCon = leftJoyCon;
             dualPlayer->rightJoyCon = rightJoyCon;
+            dualPlayer->gyroSource = config.gyroSource;
             dualPlayer->ds4Controller = ds4Controller;
             dualPlayer->running.store(true);
 
@@ -402,7 +426,7 @@ int main()
                             continue;
                         }
 
-                        DS4_REPORT_EX report = GenerateDualJoyConDS4Report(*leftBuf, *rightBuf);
+                        DS4_REPORT_EX report = GenerateDualJoyConDS4Report(*leftBuf, *rightBuf, dualPlayerPtr->gyroSource);
 
                         auto ret = vigem_target_ds4_update_ex(vigem_client, dualPlayerPtr->ds4Controller, report);
                         if (!VIGEM_SUCCESS(ret))
