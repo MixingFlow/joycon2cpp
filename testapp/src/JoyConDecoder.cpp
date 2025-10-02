@@ -339,8 +339,8 @@ DS4_REPORT_EX GenerateProControllerReport(const std::vector<uint8_t>& buffer)
     }
 
     if (state & BUTTON_A_MASK)        report.Report.wButtons |= DS4_BUTTON_CIRCLE;
-    if (state & BUTTON_B_MASK)        report.Report.wButtons |= DS4_BUTTON_TRIANGLE;
-    if (state & BUTTON_X_MASK)        report.Report.wButtons |= DS4_BUTTON_CROSS;
+    if (state & BUTTON_B_MASK)        report.Report.wButtons |= DS4_BUTTON_CROSS;
+    if (state & BUTTON_X_MASK)        report.Report.wButtons |= DS4_BUTTON_TRIANGLE;
     if (state & BUTTON_Y_MASK)        report.Report.wButtons |= DS4_BUTTON_SQUARE;
     if (state & BUTTON_L_SHOULDER)    report.Report.wButtons |= DS4_BUTTON_SHOULDER_LEFT;
     if (state & BUTTON_R_SHOULDER)    report.Report.wButtons |= DS4_BUTTON_SHOULDER_RIGHT;
@@ -455,4 +455,5 @@ DS4_REPORT_EX GenerateNSOGCReport(const std::vector<uint8_t>& buffer)
 
     return report;
 }
+
 
