@@ -6,25 +6,28 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest  # or ubuntu-latest if cross-platform
+    runs-on: windows-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # ensures full repo for release tagging
 
       - name: Setup CMake
         uses: lukka/get-cmake@v3.27.0
 
       - name: Configure project
-        run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
+        working-directory: ${{ github.workspace }}
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
       - name: Build project
+        working-directory: ${{ github.workspace }}
         run: cmake --build build --config Release
 
-      - name: Upload artifact to release
+      - name: Upload binary to release
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            build/Release/testapp.exe
+          files: build/Release/testapp.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
