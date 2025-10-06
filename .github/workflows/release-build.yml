@@ -1,0 +1,32 @@
+name: Build and Upload Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Configure CMake
+      run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+
+    - name: Build
+      run: cmake --build build --config Release
+
+    - name: Find EXE
+      id: get_exe
+      run: |
+        $exe = Get-ChildItem -Path build -Filter *.exe -Recurse | Select-Object -First 1
+        echo "EXE_PATH=$($exe.FullName)" >> $env:GITHUB_ENV
+
+    - name: Upload Release Asset
+      uses: softprops/action-gh-release@v2
+      with:
+        files: ${{ env.EXE_PATH }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
