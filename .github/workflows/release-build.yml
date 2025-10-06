@@ -1,4 +1,4 @@
-name: Build and Upload Release
+name: Build and Upload Release (CMake/VS)
 
 on:
   release:
@@ -9,24 +9,22 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Configure CMake
-      run: cmake -B build -S .
+      - name: Set up Visual Studio environment
+        uses: ilammy/msvc-dev-cmd@v1
 
-    - name: Build
-      run: cmake --build build --config Release
+      - name: Configure CMake
+        run: cmake -S . -B build -A x64
 
-    - name: Find EXE
-      id: get_exe
-      run: |
-        $exe = Get-ChildItem -Path build -Filter *.exe -Recurse | Select-Object -First 1
-        echo "EXE_PATH=$($exe.FullName)" >> $env:GITHUB_ENV
+      - name: Build
+        run: cmake --build build --config Release
 
-    - name: Upload Release Asset
-      uses: softprops/action-gh-release@v2
-      with:
-        files: ${{ env.EXE_PATH }}
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # Adjust the path to your executable or artifact as needed
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/Release/*.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
