@@ -1,4 +1,4 @@
-name: Build and Upload Release (CMake/VS)
+name: Build and Upload Release
 
 on:
   release:
@@ -6,25 +6,25 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: windows-latest  # or ubuntu-latest if cross-platform
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Visual Studio environment
-        uses: ilammy/msvc-dev-cmd@v1
+      - name: Setup CMake
+        uses: lukka/get-cmake@v3.27.0
 
-      - name: Configure CMake
-        run: cmake -S . -B build -A x64
+      - name: Configure project
+        run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
 
-      - name: Build
+      - name: Build project
         run: cmake --build build --config Release
 
-      # Adjust the path to your executable or artifact as needed
-      - name: Upload Release Asset
+      - name: Upload artifact to release
         uses: softprops/action-gh-release@v2
         with:
-          files: build/Release/*.exe
+          files: |
+            build/Release/testapp.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
